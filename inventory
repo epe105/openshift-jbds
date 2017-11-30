@@ -1,0 +1,7 @@
+# file: inventory
+
+[targets]
+localhost ansible_connection=local
+
+[masters]
+naps-redhat.com

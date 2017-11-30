@@ -1,0 +1,6 @@
+---
+- name: Create Project
+  shell: oc new-project jbds{{ item }}
+
+- name: Create JBDS instance
+  shell: oc new-app jbds

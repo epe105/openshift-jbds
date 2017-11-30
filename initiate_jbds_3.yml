@@ -1,0 +1,19 @@
+---
+- hosts: targets
+  name: Install JBDS
+  become: no
+  vars:
+    oc_address: https://naps-redhat.com:8443
+    oc_user: shadowman
+    oc_pass: r3dh4t1!
+    jbds_instance_count: 1
+
+  tasks:
+    - name: Log into Openshift
+      shell: oc login {{ oc_address }} --insecure-skip-tls-verify=false --username={{ oc_user }} --password={{ oc_pass }}
+
+    - name: Add Policy
+      shell: oc policy add-role-to-user view system:serviceaccount:guacamole:default
+
+    - include: jbds_instance_creation_3-1.yml
+      with_sequence: count=1

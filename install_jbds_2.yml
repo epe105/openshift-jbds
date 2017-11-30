@@ -1,0 +1,30 @@
+# file: install_guac.yml
+---
+- hosts: targets
+  name: Install JBDS
+  become: no
+  vars:
+    oc_address: https://naps-redhat.com:8443
+    oc_user: shadowman
+    oc_pass: r3dh4t1!
+
+  tasks:
+    - name: Log into Openshift
+      shell: oc login {{ oc_address }} --insecure-skip-tls-verify=false --username={{ oc_user }} --password={{ oc_pass }}
+
+    - name: Change Project
+      shell: oc project openshift
+
+    - name: Delete build config if exists
+      shell: oc delete bc jbds -n openshift
+      ignore_errors: yes
+
+    - name: Delete image stream if exists
+      shell: oc delete is/jbds
+      ignore_errors: yes
+
+    - name: Create JBDS Build and Image Stream
+      shell: oc new-build https://github.com/rlucente-se-jboss/jbds-via-html5 \
+             --name=jbds --strategy=docker \
+             -e JBDS_JAR=devstudio-11.0.0.GA-installer-standalone.jar \
+             -e INSTALLER_URL=http://naps-redhat.com.s3-website-us-east-1.amazonaws.com/files/devstudio-11.0.0.GA-installer-standalone.jar

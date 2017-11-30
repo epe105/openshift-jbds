@@ -1,0 +1,75 @@
+# file: install_guac.yml
+---
+- hosts: targets
+  name: Install Guac
+  become: no
+  vars:
+    oc_address: https://naps-redhat.com:8443
+    oc_user: shadowman
+    oc_pass: r3dh4t1!
+
+  tasks:
+    - name: Log into Openshift
+      shell: oc login {{ oc_address }} --insecure-skip-tls-verify=false --username={{ oc_user }} --password={{ oc_pass }}
+
+#    - name: Delete Guacamole Project if it exists
+#      shell: oc delete project guacamole1
+#      ignore_errors: yes
+
+#    - name: Wait for project to delete
+#      pause: minutes=1
+
+    - name: Create Guacamole Project
+      shell: oc new-project guacamole
+
+    - name: Create mysql app
+      shell: oc new-app mysql MYSQL_USER=guacamole MYSQL_PASSWORD=guacamole \
+             MYSQL_DATABASE=guacamole
+
+    - name: Wait for mysql to initialize
+      pause: minutes=1
+
+    - name: Create volume for MYSQL
+      shell: oc volume dc/mysql --add --name=mysql-volume-1 -t pvc \
+             --claim-name=mysql-data --claim-size=1G --overwrite
+
+    - name: Wait for mysql to initialize
+      pause: minutes=1
+
+    - name: Run image with alternative start command
+      shell: oc run guacamole --image=rlucentesejboss/guacamole --restart=Never \
+             --command -- /opt/guacamole/bin/initdb.sh --mysql
+
+    - name: Wait for run
+      pause: minutes=1
+
+    - name: Create initdb.sql
+      shell: oc logs guacamole > initdb.sql
+
+    - name: Delete pod
+      shell: oc delete pod guacamole
+
+    - name: Get mysql pod name
+      shell: oc get pods -o=jsonpath='{.items[?(@.metadata.labels.app=="mysql")].metadata.name}'
+      register: mysql_pod_id
+
+    - debug: var=mysql_pod_id
+
+    - name: initialize db
+      shell: oc rsh "{{ mysql_pod_id.stdout }}" /opt/rh/rh-mysql57/root/usr/bin/mysql -h 127.0.0.1 -P 3306 \
+             -u guacamole -pguacamole guacamole < initdb.sql
+
+    - name: create guacamole pod
+      shell: oc new-app rlucentesejboss/guacamole+guacamole/guacd \
+             --name=holy \
+             GUACAMOLE_HOME=/home/guacamole/.guacamole \
+             GUACD_HOSTNAME=127.0.0.1 \
+             GUACD_PORT=4822 \
+             MYSQL_HOSTNAME=mysql.guacamole.svc.cluster.local \
+             MYSQL_PORT=3306 \
+             MYSQL_DATABASE=guacamole \
+             MYSQL_USER=guacamole \
+             MYSQL_PASSWORD=guacamole
+
+    - name: Expose Service
+      shell: oc expose service holy --port=8080 --path=/guacamole

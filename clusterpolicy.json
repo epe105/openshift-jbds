@@ -1,0 +1,17 @@
+{
+  "apiVersion": "v1",
+  "kind": "ClusterRole",
+  "metadata": {
+    "name": "create_project_role"
+  },
+  "rules": [
+  {
+      "verbs": ["create"],
+      "resources": ["projectrequests"]
+  },
+  {
+      "verbs": ["get","list","watch"],
+      "resources": ["*"]
+  }
+  ]
+}
