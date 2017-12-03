@@ -1,7 +1,7 @@
 # guac-openshift
 
-$ ansible-playbook install_guac_1.yml
+$ ansible-playbook 1_install_guac.yml
 
-$ ansible-playbook install_jbds_2.yml
+$ ansible-playbook 2_install_jbds.yml
 
-$ ansible-playbook initiate_jbds_3.yml
+$ ansible-playbook 3_initiate_jbds.yml

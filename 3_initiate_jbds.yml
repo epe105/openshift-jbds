@@ -15,5 +15,5 @@
     - name: Add Policy
       shell: oc policy add-role-to-user view system:serviceaccount:guacamole:default
 
-    - include: jbds_instance_creation_3-1.yml
+    - include: 3-1_jbds_instance_creation.yml
       with_sequence: count=1
