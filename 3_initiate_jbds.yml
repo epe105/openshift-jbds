@@ -6,7 +6,7 @@
     oc_address: https://naps-redhat.com:8443
     oc_user: shadowman
     oc_pass: r3dh4t1!
-    jbds_instance_count: 1
+    jbds_instance_count: 2
 
   tasks:
     - name: Log into Openshift
@@ -16,4 +16,4 @@
       shell: oc policy add-role-to-user view system:serviceaccount:guacamole:default
 
     - include: 3-1_jbds_instance_creation.yml
-      with_sequence: count=1
+      with_sequence: count={{ jbds_instance_count }}
